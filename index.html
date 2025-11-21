@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Document Validator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;500;600;700&display=swap');
+
+        :root {
+            --color-primary: #000000;
+            --color-primary-dark: #1a1a1a;
+            --color-primary-light: #333333;
+            --color-accent: #ffffff;
+            --color-success: #000000;
+            --color-error: #000000;
+            --color-warning: #333333;
+            --color-text: #000000;
+            --color-text-secondary: #666666;
+            --color-bg: #ffffff;
+            --color-bg-secondary: #fafafa;
+            --color-border: #e0e0e0;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: repeating-linear-gradient(
+                45deg,
+            );
+            min-height: 100vh;
+            padding: 24px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: #000000;
+            padding: 48px 40px;
+            border-radius: 0;
+            box-shadow: 0 8px 0 rgba(0, 0, 0, 0.1);
+            border: 4px solid #000000;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
+            pointer-events: none;
+        }
+
+        header h1 {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 3.5em;
+            font-weight: 400;
+            margin-bottom: 8px;
+            color: white;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            text-shadow: 4px 4px 0 rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        header p {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 1.5em;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 1;
+        }
+
+        main {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 0;
+            box-shadow: 0 0 0 4px #000000;
+            border: 4px solid #000000;
+        }
+
+        .upload-section {
+            margin-bottom: 32px;
+        }
+
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload input[type='file'] {
+            display: none;
+        }
+
+        .file-upload label {
+            display: block;
+            padding: 32px 24px;
+            border: 3px dashed #000000;
+            border-radius: 0;
+            text-align: center;
+            cursor: pointer;
+            background: var(--color-bg);
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .file-upload label::before {
+            content: "📄";
+            display: block;
+            font-size: 2.5em;
+            margin-bottom: 12px;
+            opacity: 0.7;
+        }
+
+        .file-upload label:hover {
+            border-color: #000000;
+            background: #000000;
+            color: #ffffff;
+            border-style: solid;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        #fileName {
+            display: block;
+            margin-top: 12px;
+            color: var(--color-text-secondary);
+            font-size: 0.875em;
+            font-weight: 500;
+        }
+
+        .rules-section {
+            margin-bottom: 32px;
+        }
+
+        .rules-section h2 {
+            font-family: 'Bebas Neue', cursive;
+            margin-bottom: 20px;
+            color: var(--color-text);
+            font-size: 2em;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .rule-inputs {
+            display: grid;
+            gap: 20px;
+        }
+
+        .rule-input {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .rule-input label {
+            font-family: 'Bebas Neue', cursive;
+            margin-bottom: 8px;
+            font-weight: 400;
+            color: var(--color-text);
+            font-size: 1.2em;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .rule-input textarea {
+            padding: 12px 16px;
+            border: 2px solid #000000;
+            border-radius: 0;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375em;
+            resize: vertical;
+            transition: all 0.2s ease;
+            background: var(--color-bg-secondary);
+        }
+
+        .rule-input textarea:focus {
+            outline: none;
+            border-color: #000000;
+            box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+
+        .primary-btn {
+            font-family: 'Bebas Neue', cursive;
+            width: 100%;
+            padding: 18px 32px;
+            background: #000000;
+            color: white;
+            border: 4px solid #000000;
+            border-radius: 0;
+            font-size: 1.8em;
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-md);
+            letter-spacing: 0.025em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .primary-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+            z-index: -1;
+        }
+
+        .primary-btn:hover::before {
+            transform: scaleX(1);
+        }
+
+        .primary-btn:hover {
+            background: #ffffff;
+            color: #000000;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .primary-btn:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .primary-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .results-section {
+            margin-top: 40px;
+        }
+
+        .results-section h2 {
+            font-family: 'Bebas Neue', cursive;
+            margin-bottom: 24px;
+            color: var(--color-text);
+            font-size: 2em;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+            overflow-x: auto;
+            display: block;
+            border-radius: 0;
+            border: 3px solid #000000;
+        }
+
+        thead {
+            background: #000000;
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        tbody {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        th {
+            font-family: 'Bebas Neue', cursive;
+            padding: 16px;
+            text-align: left;
+            font-weight: 400;
+            color: #ffffff;
+            border-bottom: 3px solid #000000;
+            font-size: 1.2em;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--color-border);
+            word-wrap: break-word;
+            color: var(--color-text);
+            font-size: 0.9375em;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: var(--color-bg);
+        }
+
+        .status-pass {
+            font-family: 'Bebas Neue', cursive;
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 16px;
+            background: #000000;
+            color: #ffffff;
+            font-weight: 400;
+            border-radius: 0;
+            letter-spacing: 0.1em;
+            font-size: 0.875em;
+        }
+
+        .status-pass::before {
+            content: "✓";
+            margin-right: 6px;
+        }
+
+        .status-fail {
+            font-family: 'Bebas Neue', cursive;
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 16px;
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+            font-weight: 400;
+            border-radius: 0;
+            letter-spacing: 0.1em;
+            font-size: 0.875em;
+        }
+
+        .status-fail::before {
+            content: "✗";
+            margin-right: 6px;
+        }
+
+        .status-error {
+            font-family: 'Bebas Neue', cursive;
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 16px;
+            background: #333333;
+            color: #ffffff;
+            font-weight: 400;
+            border-radius: 0;
+            letter-spacing: 0.1em;
+            font-size: 0.875em;
+        }
+
+        .status-error::before {
+            content: "⚠";
+            margin-right: 6px;
+        }
+
+        .confidence-bar {
+            display: inline-block;
+            width: 80px;
+            height: 6px;
+            background: var(--color-border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-right: 8px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #666666, #333333, #000000);
+            transition: width 0.5s ease;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e0e0e0;
+            border-top: 4px solid #000000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 24px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            font-family: 'Bebas Neue', cursive;
+            padding: 16px 20px;
+            background: #000000;
+            color: #ffffff;
+            border-radius: 0;
+            border: 3px solid #000000;
+            letter-spacing: 0.1em;
+            margin-top: 24px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            main {
+                padding: 20px;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+
+            .confidence-bar {
+                width: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📄 PDF Document Validator</h1>
+            <p>Upload a PDF and define validation rules</p>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <div class="file-upload">
+                    <input type="file" id="pdfInput" accept=".pdf" required>
+                    <label for="pdfInput">Choose PDF File</label>
+                    <span id="fileName">No file selected</span>
+                </div>
+            </div>
+
+            <div class="rules-section">
+                <h2>Define Validation Rules</h2>
+                <div class="rule-inputs">
+                    <div class="rule-input">
+                        <label for="rule1">Rule 1</label>
+                        <textarea id="rule1" placeholder="E.g., The document must have a purpose section." rows="2"></textarea>
+                    </div>
+                    <div class="rule-input">
+                        <label for="rule2">Rule 2</label>
+                        <textarea id="rule2" placeholder="E.g., The document must mention at least one date." rows="2"></textarea>
+                    </div>
+                    <div class="rule-input">
+                        <label for="rule3">Rule 3</label>
+                        <textarea id="rule3" placeholder="E.g., The document must define at least one term." rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <button id="validateBtn" class="primary-btn">Check Document</button>
+
+            <div id="resultsSection" class="results-section hidden">
+                <h2>Validation Results</h2>
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%">Rule</th>
+                            <th style="width: 10%">Status</th>
+                            <th style="width: 30%">Evidence</th>
+                            <th style="width: 25%">Reasoning</th>
+                            <th style="width: 10%">Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="loadingSpinner" class="spinner hidden"></div>
+            <div id="errorMessage" class="error-message hidden"></div>
+        </main>
+    </div>
+
+    <script>
+        const pdfInput = document.getElementById('pdfInput');
+        const fileName = document.getElementById('fileName');
+        const validateBtn = document.getElementById('validateBtn');
+        const resultsSection = document.getElementById('resultsSection');
+        const resultsBody = document.getElementById('resultsBody');
+        const errorMessage = document.getElementById('errorMessage');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        pdfInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                fileName.textContent = `Selected: ${file.name}`;
+            }
+        });
+
+        validateBtn.addEventListener('click', async () => {
+            const file = pdfInput.files[0];
+            const rule1 = document.getElementById('rule1').value.trim();
+            const rule2 = document.getElementById('rule2').value.trim();
+            const rule3 = document.getElementById('rule3').value.trim();
+
+            if (!file) {
+                showError('Please select a PDF file');
+                return;
+            }
+
+            if (!rule1 || !rule2 || !rule3) {
+                showError('Please enter all 3 validation rules');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('pdf', file);
+            formData.append('rules', JSON.stringify([rule1, rule2, rule3]));
+
+            loadingSpinner.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            resultsSection.classList.add('hidden');
+            validateBtn.disabled = true;
+
+            try {
+                const response = await fetch('http://localhost:5000/api/validate', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Validation failed');
+                }
+
+                const data = await response.json();
+                displayResults(data.results);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                loadingSpinner.classList.add('hidden');
+                validateBtn.disabled = false;
+            }
+        });
+
+        function displayResults(results) {
+            resultsBody.innerHTML = '';
+
+            results.forEach((result) => {
+                const row = document.createElement('tr');
+                const statusClass = `status-${result.status}`;
+                const statusText = result.status.toUpperCase();
+                const confidencePercentage = Math.min(result.confidence, 100);
+                
+                row.innerHTML = `
+                    <td><strong>${escapeHtml(result.rule)}</strong></td>
+                    <td><span class="${statusClass}">${statusText}</span></td>
+                    <td>${escapeHtml(result.evidence)}</td>
+                    <td>${escapeHtml(result.reasoning)}</td>
+                    <td>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${confidencePercentage}%"></div>
+                        </div>
+                        <span>${result.confidence}%</span>
+                    </td>
+                `;
+                
+                resultsBody.appendChild(row);
+            });
+
+            resultsSection.classList.remove('hidden');
+        }
+
+        function showError(message) {
+            errorMessage.textContent = `❌ ${message}`;
+            errorMessage.classList.remove('hidden');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
