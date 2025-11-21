@@ -77,7 +77,7 @@ mkdir frontend
 2. **Place the HTML file:**
    - Save the `index.html` file to frontend folder
 
-## ▶️ Running the Application
+##  Running the Application
 
 ### Terminal 1 - Start Backend Server:
 
