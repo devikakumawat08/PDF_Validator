@@ -2,7 +2,7 @@
 
 A full-stack web application that validates PDF documents against user-defined rules using OpenAI's GPT-3.5-turbo model.
 
-## 🚀 Features
+ Features
 
 - Upload PDF files (2-10 pages)
 - Define 3 custom validation rules in natural language
@@ -10,7 +10,7 @@ A full-stack web application that validates PDF documents against user-defined r
 - Results include: PASS/FAIL status, evidence, reasoning, and confidence scores
 - Modern black & white design with GTA-inspired typography
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 pdf-validator/
@@ -24,7 +24,7 @@ pdf-validator/
 └── README.md
 ```
 
-## 🛠️ Technology Stack
+##  Technology Stack
 
 - **Frontend:** HTML5, CSS3, Vanilla JavaScript
 - **Backend:** Node.js, Express
@@ -32,13 +32,13 @@ pdf-validator/
 - **AI:** OpenAI API (GPT-3.5-turbo)
 - **Fonts:** Bebas Neue (GTA-style), Roboto
 
-## 📋 Prerequisites
+##  Prerequisites
 
 - Node.js (v14 or higher)
 - Python (for serving frontend)
 - OpenAI API key (already configured)
 
-## 🔧 Installation & Setup
+##  Installation & Setup
 
 ### Step 1: Create Project Structure
 
@@ -88,8 +88,8 @@ npm start
 
 You should see:
 ```
-✅ Server running on http://localhost:5000
-📁 Upload directory: C:\Users\...\backend\uploads
+ Server running on http://localhost:5000
+ Upload directory: C:\Users\...\backend\uploads
 ```
 
 ### Terminal 2 - Start Frontend Server:
@@ -113,7 +113,7 @@ Open your browser and go to:
 http://localhost:3000
 ```
 
-## 📝 Usage
+##  Usage
 
 1. **Upload a PDF** - Click the upload area and select your PDF file
 2. **Define 3 Rules** - Enter validation rules in natural language
@@ -128,7 +128,7 @@ http://localhost:3000
 - "The document must mention who is responsible."
 - "The document must list any requirements."
 
-## 🎨 Design Features
+##  Design Features
 
 - **Black & White Color Scheme** - High contrast, minimalist design
 - **GTA-Inspired Typography** - Bebas Neue font for headers
@@ -136,7 +136,7 @@ http://localhost:3000
 - **Responsive Layout** - Works on desktop and mobile devices
 - **Smooth Animations** - Hover effects and transitions
 
-## 📊 API Response Format
+##  API Response Format
 
 ```json
 {
@@ -152,14 +152,14 @@ http://localhost:3000
 }
 ```
 
-## 🔐 Security Notes
+##  Security Notes
 
 - API key is stored in `.env` file (not tracked by git)
 - Files are automatically deleted after processing
 - Only PDF files are accepted for upload
 - CORS enabled for localhost development
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
@@ -169,7 +169,7 @@ http://localhost:3000
 | API errors | Verify OpenAI API key is valid and has credits |
 | CORS errors | Ensure backend is running on port 5000 |
 
-## 📦 Dependencies
+##  Dependencies
 
 **Backend:**
 - express - Web framework
@@ -178,20 +178,21 @@ http://localhost:3000
 - pdf-parse - PDF text extraction
 - dotenv - Environment variable management
 
-## 🔄 Updates & Modifications
+##  Updates & Modifications
 
 To modify the design or functionality:
 - **Frontend:** Edit `index.html` (all styles and scripts are embedded)
 - **Backend:** Edit `server.js`
 - **Configuration:** Edit `.env`
 
-## 📄 License
+##  License
 
 ISC
 
-## 👨‍💻 Author
+##  Author
 
-Created for NIYAMR AI Full-Stack Developer Assignment
+Created for NIYAMR AI Full-Stack Developer Assignment by Devika kumawat
+
 
 ---
 
