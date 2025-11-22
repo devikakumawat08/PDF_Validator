@@ -46,7 +46,26 @@ const extractPdfText = async (filePath) => {
   return data.text;
 };
 
-// LLM validation function using GROQ API (FREE!) - UPDATED MODEL
+// Helper function to extract and clean JSON from response
+const extractJSON = (text) => {
+  try {
+    // Remove markdown code blocks
+    text = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    
+    // Try to find JSON object using regex
+    const jsonMatch = text.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/);
+    if (jsonMatch) {
+      return jsonMatch[0];
+    }
+    
+    // If no match, return original text
+    return text;
+  } catch (e) {
+    return text;
+  }
+};
+
+// LLM validation function using GROQ API - IMPROVED JSON PARSING
 const validateWithLLM = async (pdfText, rule) => {
   const apiKey = process.env.GROQ_API_KEY;
   
@@ -57,15 +76,18 @@ const validateWithLLM = async (pdfText, rule) => {
   console.log(`\n🔍 Validating rule: "${rule}"`);
   console.log(`📝 PDF text length: ${pdfText.length} characters`);
 
-  const prompt = `You are a document validator. Analyze the following PDF text and check if it meets this rule:
+  // Simplified prompt with clearer instructions
+  const prompt = `Analyze this PDF text and check if it meets the rule below.
 
-RULE: "${rule}"
+RULE: ${rule}
 
 PDF TEXT:
 ${pdfText.substring(0, 4000)}
 
-Respond with ONLY valid JSON in this exact format (no markdown, no code blocks, no extra text):
-{"status": "pass", "evidence": "A single relevant sentence from the document", "reasoning": "Brief explanation of your decision", "confidence": 85}`;
+You MUST respond with ONLY a valid JSON object in this EXACT format with no additional text:
+{"status":"pass","evidence":"Exact sentence from document","reasoning":"Why it passes or fails","confidence":90}
+
+Status must be either "pass" or "fail". Do not include any explanations before or after the JSON.`;
 
   try {
     console.log('📡 Sending request to Groq API...');
@@ -81,15 +103,16 @@ Respond with ONLY valid JSON in this exact format (no markdown, no code blocks, 
         messages: [
           {
             role: 'system',
-            content: 'You are a document validator. Always respond with valid JSON only, no markdown formatting.'
+            content: 'You are a JSON-only API. Return ONLY valid JSON with no markdown, no explanations, no extra text. Format: {"status":"pass","evidence":"text","reasoning":"text","confidence":number}'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        temperature: 0.3,
-        max_tokens: 300
+        temperature: 0.1,
+        max_tokens: 500,
+        response_format: { type: "json_object" }
       })
     });
 
@@ -110,32 +133,36 @@ Respond with ONLY valid JSON in this exact format (no markdown, no code blocks, 
     let content = data.choices[0].message.content.trim();
     console.log('📄 Raw response:', content);
     
-    // Remove markdown code blocks if present
-    content = content.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-    
-    // Try to extract JSON if wrapped in other text
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      content = jsonMatch[0];
-    }
-    
+    // Extract and clean JSON
+    content = extractJSON(content);
     console.log('🔧 Cleaned response:', content);
     
-    const result = JSON.parse(content);
-    
-    // Validate required fields
-    if (!result.status || !result.evidence || !result.reasoning || result.confidence === undefined) {
-      throw new Error('Missing required fields in LLM response');
+    let result;
+    try {
+      result = JSON.parse(content);
+    } catch (parseError) {
+      console.error('❌ JSON Parse Error:', parseError.message);
+      console.error('📄 Content that failed to parse:', content);
+      throw new Error(`Failed to parse JSON: ${parseError.message}`);
     }
     
-    console.log(`✅ Validation result: ${result.status.toUpperCase()}`);
+    // Validate and normalize fields
+    const status = (result.status || '').toLowerCase();
+    const evidence = result.evidence || result.Evidence || 'No evidence found';
+    const reasoning = result.reasoning || result.Reasoning || 'No reasoning provided';
+    const confidence = parseInt(result.confidence || result.Confidence || 0);
+    
+    // Ensure status is valid
+    const validStatus = (status === 'pass' || status === 'fail') ? status : 'fail';
+    
+    console.log(`✅ Validation result: ${validStatus.toUpperCase()}`);
     
     return {
       rule: rule,
-      status: result.status.toLowerCase(),
-      evidence: result.evidence,
-      reasoning: result.reasoning,
-      confidence: parseInt(result.confidence)
+      status: validStatus,
+      evidence: evidence,
+      reasoning: reasoning,
+      confidence: confidence
     };
   } catch (error) {
     console.error('❌ LLM Error:', error.message);
@@ -197,7 +224,7 @@ app.post('/api/validate', upload.single('pdf'), async (req, res) => {
       
       // Add a small delay between requests to avoid rate limits
       if (i < parsedRules.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
 
