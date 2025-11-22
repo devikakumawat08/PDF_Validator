@@ -2,16 +2,16 @@
 
 A full-stack web application that validates PDF documents against user-defined rules using AI/LLM validation powered by Groq's free API.
 
-## 🚀 Features
+##  Features
 
-- 📄 Upload PDF files (2-10 pages)
-- ✍️ Define 3 custom validation rules in natural language
-- 🤖 AI-powered validation using Groq's Llama 3.3 70B model
-- 📊 Results include: PASS/FAIL status, evidence, reasoning, and confidence scores
-- 🎨 Modern black & white design with GTA San Andreas inspired typography
-- ⚡ 100% FREE - No credit card required!
+-  Upload PDF files (2-10 pages)
+-  Define 3 custom validation rules in natural language
+-  AI-powered validation using Groq's Llama 3.3 70B model
+-  Results include: PASS/FAIL status, evidence, reasoning, and confidence scores
+-  Modern black & white design with GTA San Andreas inspired typography
+-  100% FREE - No credit card required!
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 pdf-validator/
@@ -25,7 +25,7 @@ pdf-validator/
 └── README.md
 ```
 
-## 🛠️ Technology Stack
+##  Technology Stack
 
 ### Frontend
 - **HTML5** - Semantic markup
@@ -44,7 +44,7 @@ pdf-validator/
 - **Model:** Llama 3.3 70B Versatile
 - **Cost:** $0 (completely free!)
 
-## 📋 Prerequisites
+##  Prerequisites
 
 Before you begin, ensure you have installed:
 
@@ -52,7 +52,7 @@ Before you begin, ensure you have installed:
 - **Python** (for serving frontend) - [Download](https://www.python.org/downloads/)
 - **Groq API Key** (free) - [Get yours](https://console.groq.com/)
 
-## 🔧 Installation & Setup
+##  Installation & Setup
 
 ### Step 1: Get Your Free Groq API Key
 
@@ -111,7 +111,7 @@ mkdir frontend
 2. **Place the HTML file:**
    - Save `index.html` to the `frontend/` folder
 
-## ▶️ Running the Application
+##  Running the Application
 
 You need to run **TWO separate command prompt/terminal windows**:
 
@@ -125,12 +125,12 @@ npm start
 **Expected output:**
 ```
 ==================================================
-✅ Server running on http://localhost:5000
-🚀 Using Groq API (FREE & FAST)
-🤖 Model: llama-3.3-70b-versatile
-📁 Upload directory: C:\Users\...\backend\uploads
-🔑 Groq API Key configured: true
-🧪 Test API key: http://localhost:5000/api/test-key
+ Server running on http://localhost:5000
+ Using Groq API (FREE & FAST)
+ Model: llama-3.3-70b-versatile
+ Upload directory: C:\Users\...\backend\uploads
+ Groq API Key configured: true
+ Test API key: http://localhost:5000/api/test-key
 ==================================================
 ```
 
@@ -214,13 +214,13 @@ Results table shows for each rule:
 - Error messages with clear explanations
 - Professional table layout for results
 
-## 🔐 Security & Privacy
+##  Security & Privacy
 
-- ✅ API key stored in `.env` file (not in code)
-- ✅ Files automatically deleted after processing
-- ✅ Only PDF files accepted
-- ✅ File size validation
-- ✅ CORS enabled for localhost only
+-  API key stored in `.env` file (not in code)
+-  Files automatically deleted after processing
+-  Only PDF files accepted
+-  File size validation
+-  CORS enabled for localhost only
 
 ## 🐛 Troubleshooting
 
@@ -247,7 +247,7 @@ Results table shows for each rule:
 ### Rate limit exceeded
 **Solution:** Groq free tier has rate limits. Wait 60 seconds and try again.
 
-## 📦 Dependencies
+##  Dependencies
 
 ### Backend Dependencies
 ```json
@@ -264,7 +264,7 @@ Results table shows for each rule:
 - No external dependencies (vanilla JavaScript)
 - Google Fonts: Bebas Neue, Roboto
 
-## 🌟 Why Groq?
+##  Why Groq?
 
 | Feature | OpenAI | Groq |
 |---------|--------|------|
@@ -274,7 +274,7 @@ Results table shows for each rule:
 | **Quota** | Limited by billing | Generous free tier |
 | **Quality** | GPT-3.5 | Llama 3.3 70B (comparable) |
 
-## 📊 Example Result Format
+##  Example Result Format
 
 ```json
 {
@@ -286,7 +286,7 @@ Results table shows for each rule:
 }
 ```
 
-## 🔄 API Endpoints
+##  API Endpoints
 
 ### POST `/api/validate`
 Validates PDF against rules
@@ -301,15 +301,15 @@ Health check endpoint
 Tests if Groq API key is valid
 - **Output**: Validation status and available models
 
-## 📝 Example Test Scenario
+##  Example Test Scenario
 
 1. **Upload:** `sample-document.pdf`
 2. **Rules:**
-   - "The document must have a purpose section." → ✅ PASS (95%)
-   - "The document must mention at least one date." → ✅ PASS (92%)
-   - "The document must define at least one term." → ✅ PASS (90%)
+   - "The document must have a purpose section." →  PASS (95%)
+   - "The document must mention at least one date." →  PASS (92%)
+   - "The document must define at least one term." →  PASS (90%)
 
-## 🚀 Advanced Usage
+##  Advanced Usage
 
 ### Custom Model Selection
 Edit `server.js` line 119 to use different Groq models:
@@ -325,15 +325,15 @@ Edit `server.js` line 127 to change AI creativity:
 temperature: 0.2,  // Lower = more consistent, Higher = more creative
 ```
 
-## 📄 License
+##  License
 
 ISC
 
-## 👨‍💻 Author
+##  Author
 
 Created for **NIYAMR AI Full-Stack Developer Assignment**
 
-## 🆘 Support
+##  Support
 
 For issues or questions:
 1. Check the Troubleshooting section above
@@ -341,7 +341,7 @@ For issues or questions:
 3. Check CMD/Terminal logs for detailed error messages
 4. Verify `.env` file format (no quotes, no spaces)
 
-## ⚠️ Important Notes
+##  Important Notes
 
 - Your Groq API key is **FREE** and has no quota limits for personal use
 - Files are automatically deleted after processing (not stored)
@@ -349,19 +349,19 @@ For issues or questions:
 - Processing takes ~3-5 seconds per rule (1 second delay between requests)
 - Works best with well-structured PDF documents
 
-## 🎯 Assignment Compliance
+##  Assignment Compliance
 
 This project fulfills all NIYAMR AI assignment requirements:
 
-✅ **Upload PDF** - Fully functional with drag-and-drop  
-✅ **3 Rules** - User can enter any validation rules  
-✅ **LLM Integration** - Groq API with Llama 3.3 70B  
-✅ **Pass/Fail Status** - Clear status for each rule  
-✅ **Evidence** - Exact quotes from document  
-✅ **Reasoning** - AI explanation of decision  
-✅ **Confidence Score** - 0-100% accuracy estimate  
-✅ **Frontend** - Modern, responsive UI  
-✅ **Backend** - Express server with proper error handling  
+ **Upload PDF** - Fully functional with drag-and-drop  
+ **3 Rules** - User can enter any validation rules  
+ **LLM Integration** - Groq API with Llama 3.3 70B  
+ **Pass/Fail Status** - Clear status for each rule  
+ **Evidence** - Exact quotes from document  
+ **Reasoning** - AI explanation of decision  
+ **Confidence Score** - 0-100% accuracy estimate  
+ **Frontend** - Modern, responsive UI  
+ **Backend** - Express server with proper error handling  
 
 ---
 
