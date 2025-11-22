@@ -46,26 +46,27 @@ const extractPdfText = async (filePath) => {
   return data.text;
 };
 
-// Helper function to extract and clean JSON from response
+// Improved JSON extraction function
 const extractJSON = (text) => {
   try {
     // Remove markdown code blocks
-    text = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
     
-    // Try to find JSON object using regex
-    const jsonMatch = text.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/);
-    if (jsonMatch) {
-      return jsonMatch[0];
+    // Remove any leading/trailing text and extract JSON object
+    const jsonStart = text.indexOf('{');
+    const jsonEnd = text.lastIndexOf('}');
+    
+    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+      text = text.substring(jsonStart, jsonEnd + 1);
     }
     
-    // If no match, return original text
-    return text;
+    return text.trim();
   } catch (e) {
     return text;
   }
 };
 
-// LLM validation function using GROQ API - IMPROVED JSON PARSING
+// LLM validation function using GROQ API - FIXED
 const validateWithLLM = async (pdfText, rule) => {
   const apiKey = process.env.GROQ_API_KEY;
   
@@ -76,18 +77,22 @@ const validateWithLLM = async (pdfText, rule) => {
   console.log(`\n🔍 Validating rule: "${rule}"`);
   console.log(`📝 PDF text length: ${pdfText.length} characters`);
 
-  // Simplified prompt with clearer instructions
-  const prompt = `Analyze this PDF text and check if it meets the rule below.
+  const systemPrompt = `You are a document validation assistant. You MUST respond with ONLY a JSON object, nothing else.
+The JSON must have exactly these fields:
+- status: either "pass" or "fail"
+- evidence: a relevant quote from the document
+- reasoning: brief explanation
+- confidence: a number between 0-100
 
-RULE: ${rule}
+Example response format:
+{"status":"pass","evidence":"The document states 'Purpose: To establish guidelines'","reasoning":"Document contains a clear purpose statement","confidence":95}`;
 
-PDF TEXT:
+  const userPrompt = `Check if this document meets the rule: "${rule}"
+
+Document text (first 4000 characters):
 ${pdfText.substring(0, 4000)}
 
-You MUST respond with ONLY a valid JSON object in this EXACT format with no additional text:
-{"status":"pass","evidence":"Exact sentence from document","reasoning":"Why it passes or fails","confidence":90}
-
-Status must be either "pass" or "fail". Do not include any explanations before or after the JSON.`;
+Respond with ONLY the JSON object, no other text.`;
 
   try {
     console.log('📡 Sending request to Groq API...');
@@ -103,16 +108,15 @@ Status must be either "pass" or "fail". Do not include any explanations before o
         messages: [
           {
             role: 'system',
-            content: 'You are a JSON-only API. Return ONLY valid JSON with no markdown, no explanations, no extra text. Format: {"status":"pass","evidence":"text","reasoning":"text","confidence":number}'
+            content: systemPrompt
           },
           {
             role: 'user',
-            content: prompt
+            content: userPrompt
           }
         ],
-        temperature: 0.1,
-        max_tokens: 500,
-        response_format: { type: "json_object" }
+        temperature: 0.2,
+        max_tokens: 400
       })
     });
 
@@ -143,19 +147,28 @@ Status must be either "pass" or "fail". Do not include any explanations before o
     } catch (parseError) {
       console.error('❌ JSON Parse Error:', parseError.message);
       console.error('📄 Content that failed to parse:', content);
-      throw new Error(`Failed to parse JSON: ${parseError.message}`);
+      
+      // Last resort: try to create a valid response from the text
+      return {
+        rule: rule,
+        status: 'fail',
+        evidence: 'Unable to parse LLM response',
+        reasoning: `Parse error: ${parseError.message}. Raw content: ${content.substring(0, 100)}`,
+        confidence: 0
+      };
     }
     
-    // Validate and normalize fields
-    const status = (result.status || '').toLowerCase();
-    const evidence = result.evidence || result.Evidence || 'No evidence found';
-    const reasoning = result.reasoning || result.Reasoning || 'No reasoning provided';
-    const confidence = parseInt(result.confidence || result.Confidence || 0);
+    // Validate and normalize fields with better fallbacks
+    const status = String(result.status || result.Status || 'fail').toLowerCase();
+    const evidence = String(result.evidence || result.Evidence || result.quote || 'No evidence provided').substring(0, 200);
+    const reasoning = String(result.reasoning || result.Reasoning || result.reason || 'No reasoning provided').substring(0, 200);
+    const confidenceRaw = result.confidence || result.Confidence || result.score || 50;
+    const confidence = Math.min(100, Math.max(0, parseInt(confidenceRaw)));
     
     // Ensure status is valid
     const validStatus = (status === 'pass' || status === 'fail') ? status : 'fail';
     
-    console.log(`✅ Validation result: ${validStatus.toUpperCase()}`);
+    console.log(`✅ Validation result: ${validStatus.toUpperCase()} (${confidence}%)`);
     
     return {
       rule: rule,
@@ -169,9 +182,11 @@ Status must be either "pass" or "fail". Do not include any explanations before o
     
     // Provide more specific error information
     if (error.message.includes('401')) {
-      throw new Error('Invalid API key - Check your Groq API key');
+      throw new Error('Invalid API key');
     } else if (error.message.includes('429')) {
-      throw new Error('Rate limit exceeded - Too many requests');
+      throw new Error('Rate limit exceeded');
+    } else if (error.message.includes('quota')) {
+      throw new Error('API quota exceeded');
     } else {
       throw error;
     }
@@ -222,8 +237,9 @@ app.post('/api/validate', upload.single('pdf'), async (req, res) => {
         });
       }
       
-      // Add a small delay between requests to avoid rate limits
+      // Add delay between requests
       if (i < parsedRules.length - 1) {
+        console.log('⏳ Waiting 1 second before next request...');
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
@@ -234,6 +250,8 @@ app.post('/api/validate', upload.single('pdf'), async (req, res) => {
     });
 
     console.log('\n✅ Validation complete!');
+    console.log(`📊 Results: ${results.filter(r => r.status === 'pass').length} passed, ${results.filter(r => r.status === 'fail').length} failed, ${results.filter(r => r.status === 'error').length} errors`);
+    
     res.json({ results });
   } catch (error) {
     console.error('❌ Validation error:', error);
