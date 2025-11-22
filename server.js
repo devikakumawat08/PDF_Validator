@@ -46,12 +46,12 @@ const extractPdfText = async (filePath) => {
   return data.text;
 };
 
-// LLM validation function using OpenAI - FIXED VERSION
+// LLM validation function using GROQ API (FREE!)
 const validateWithLLM = async (pdfText, rule) => {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   
   if (!apiKey) {
-    throw new Error('OpenAI API key not configured in .env file');
+    throw new Error('Groq API key not configured in .env file');
   }
 
   console.log(`\n🔍 Validating rule: "${rule}"`);
@@ -68,16 +68,16 @@ Respond with ONLY valid JSON in this exact format (no markdown, no code blocks, 
 {"status": "pass", "evidence": "A single relevant sentence from the document", "reasoning": "Brief explanation of your decision", "confidence": 85}`;
 
   try {
-    console.log('📡 Sending request to OpenAI API...');
+    console.log('📡 Sending request to Groq API...');
     
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model: 'llama-3.1-70b-versatile',
         messages: [
           {
             role: 'system',
@@ -95,16 +95,16 @@ Respond with ONLY valid JSON in this exact format (no markdown, no code blocks, 
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('❌ OpenAI API Error:', errorData);
-      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+      console.error('❌ Groq API Error:', errorData);
+      throw new Error(`Groq API error: ${errorData.error?.message || 'Unknown error'}`);
     }
 
     const data = await response.json();
-    console.log('✅ Received response from OpenAI');
+    console.log('✅ Received response from Groq');
     
     if (!data.choices || !data.choices[0]) {
       console.error('❌ Invalid response structure:', data);
-      throw new Error('Invalid response structure from OpenAI');
+      throw new Error('Invalid response structure from Groq');
     }
 
     let content = data.choices[0].message.content.trim();
@@ -142,11 +142,9 @@ Respond with ONLY valid JSON in this exact format (no markdown, no code blocks, 
     
     // Provide more specific error information
     if (error.message.includes('401')) {
-      throw new Error('Invalid API key - Check your OpenAI API key');
+      throw new Error('Invalid API key - Check your Groq API key');
     } else if (error.message.includes('429')) {
       throw new Error('Rate limit exceeded - Too many requests');
-    } else if (error.message.includes('insufficient_quota')) {
-      throw new Error('Insufficient credits - Add credits to your OpenAI account');
     } else {
       throw error;
     }
@@ -218,27 +216,27 @@ app.post('/api/validate', upload.single('pdf'), async (req, res) => {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  const apiKeyConfigured = !!process.env.OPENAI_API_KEY;
+  const apiKeyConfigured = !!process.env.GROQ_API_KEY;
   res.json({ 
     status: 'ok', 
-    message: 'Server is running',
+    message: 'Server is running with Groq API',
     apiKeyConfigured: apiKeyConfigured 
   });
 });
 
 // Test API key endpoint
 app.get('/api/test-key', async (req, res) => {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   
   if (!apiKey) {
     return res.json({ 
       valid: false, 
-      error: 'API key not configured in .env file' 
+      error: 'Groq API key not configured in .env file' 
     });
   }
 
   try {
-    const response = await fetch('https://api.openai.com/v1/models', {
+    const response = await fetch('https://api.groq.com/openai/v1/models', {
       headers: {
         'Authorization': `Bearer ${apiKey}`
       }
@@ -247,7 +245,7 @@ app.get('/api/test-key', async (req, res) => {
     if (response.ok) {
       res.json({ 
         valid: true, 
-        message: 'API key is valid and working!' 
+        message: 'Groq API key is valid and working!' 
       });
     } else {
       const error = await response.json();
@@ -268,8 +266,9 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`\n${'='.repeat(50)}`);
   console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Using Groq API (FREE & FAST)`);
   console.log(`📁 Upload directory: ${path.resolve('uploads')}`);
-  console.log(`🔑 API Key configured: ${!!process.env.OPENAI_API_KEY}`);
+  console.log(`🔑 Groq API Key configured: ${!!process.env.GROQ_API_KEY}`);
   console.log(`🧪 Test API key: http://localhost:${PORT}/api/test-key`);
   console.log(`${'='.repeat(50)}\n`);
 });
