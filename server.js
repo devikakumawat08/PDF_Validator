@@ -46,7 +46,7 @@ const extractPdfText = async (filePath) => {
   return data.text;
 };
 
-// LLM validation function using GROQ API (FREE!)
+// LLM validation function using GROQ API (FREE!) - UPDATED MODEL
 const validateWithLLM = async (pdfText, rule) => {
   const apiKey = process.env.GROQ_API_KEY;
   
@@ -77,7 +77,7 @@ Respond with ONLY valid JSON in this exact format (no markdown, no code blocks, 
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama-3.1-70b-versatile',
+        model: 'llama-3.3-70b-versatile',
         messages: [
           {
             role: 'system',
@@ -243,9 +243,11 @@ app.get('/api/test-key', async (req, res) => {
     });
 
     if (response.ok) {
+      const data = await response.json();
       res.json({ 
         valid: true, 
-        message: 'Groq API key is valid and working!' 
+        message: 'Groq API key is valid and working!',
+        availableModels: data.data?.map(m => m.id).slice(0, 5) || []
       });
     } else {
       const error = await response.json();
@@ -267,6 +269,7 @@ app.listen(PORT, () => {
   console.log(`\n${'='.repeat(50)}`);
   console.log(`✅ Server running on http://localhost:${PORT}`);
   console.log(`🚀 Using Groq API (FREE & FAST)`);
+  console.log(`🤖 Model: llama-3.3-70b-versatile`);
   console.log(`📁 Upload directory: ${path.resolve('uploads')}`);
   console.log(`🔑 Groq API Key configured: ${!!process.env.GROQ_API_KEY}`);
   console.log(`🧪 Test API key: http://localhost:${PORT}/api/test-key`);
